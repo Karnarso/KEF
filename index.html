@@ -1,64 +1,289 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, 
-  Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Cell,
-  PieChart, Pie, ComposedChart
-} from 'recharts';
-import { 
-  TrendingUp, Wallet, ArrowUpRight, Clock, Calculator, 
-  BarChart3, PieChart as PieIcon, Activity, Info, CreditCard, ChevronRight,
-  TrendingDown, DollarSign, FileText, ShieldCheck
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Project KEF - Investment Dashboard</title>
+    
+    <!-- CDNs hlaðnir í nákvæmri röð fyrir hámarks stöðugleika -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-const App = () => {
-  const [exitMultiple, setExitMultiple] = useState(6.5);
-  const equityInvestment = 104.4; // Samkvæmt PDF
-  
-  const financialData = [
-    { year: 2026, revenue: 379.73, ebitda: 104.29, debt: 390.00, cash: 37.75, noplat: 73.16 },
-    { year: 2027, revenue: 417.70, ebitda: 107.51, debt: 390.00, cash: 86.29, noplat: 83.73 },
-    { year: 2028, revenue: 459.47, ebitda: 118.26, debt: 390.00, cash: 5.65,  noplat: 93.39 },
-    { year: 2029, revenue: 505.42, ebitda: 130.09, debt: 243.33, cash: 44.37, noplat: 100.09 },
-    { year: 2030, revenue: 541.28, ebitda: 139.41, debt: 196.67, cash: 17.12, noplat: 105.10 },
-    { year: 2031, revenue: 568.34, ebitda: 146.38, debt: 80.00,  cash: 102.74, noplat: 110.35 },
-    { year: 2032, revenue: 596.76, ebitda: 153.70, debt: 40.00,  cash: 195.56, noplat: 115.87 },
-  ];
+    <style>
+        body { 
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background-color: #F8FAFC;
+            touch-action: manipulation;
+        }
+        
+        /* Lagfæring á sleða fyrir snertiskjái */
+        .custom-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            margin: 15px 0;
+        }
 
-  const revCAGR = (Math.pow(596.76 / 379.73, 1/6) - 1) * 100;
-  const ebitdaCAGR = (Math.pow(153.70 / 104.29, 1/6) - 1) * 100;
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 34px;
+            height: 34px;
+            background: #1d4ed8;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
 
-  const calculatedRatios = useMemo(() => {
-    return financialData.map((d, index) => {
-      const prevDebt = index > 0 ? financialData[index - 1].debt : 390.00;
-      const amortization = Math.max(0, prevDebt - d.debt);
-      const interest = d.debt * 0.08;
-      const fccr = d.noplat / (interest + amortization);
-      return {
-        year: d.year,
-        leverage: parseFloat(((d.debt - d.cash) / d.ebitda).toFixed(2)),
-        fccr: parseFloat(fccr.toFixed(2))
-      };
-    });
-  }, [financialData]);
+        .custom-slider::-moz-range-thumb {
+            width: 34px;
+            height: 34px;
+            background: #1d4ed8;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
 
-  return (
-    <div className="min-h-screen bg-[#F8FAFC] p-8 font-sans text-slate-900">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="text-4xl font-extrabold text-blue-950">Project KEF</h1>
-        <p className="text-slate-500">Mælaborðið er tilbúið. Skoðaðu Preview flipann fyrir gagnvirka útgáfu.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm">
-                <h3 className="font-bold mb-4">Tekjur CAGR</h3>
-                <p className="text-3xl font-black text-blue-600">{revCAGR.toFixed(1)}%</p>
-            </div>
-            <div className="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm">
-                <h3 className="font-bold mb-4">EBITDA CAGR</h3>
-                <p className="text-3xl font-black text-blue-900">{ebitdaCAGR.toFixed(1)}%</p>
-            </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+        /* Myndritastillingar */
+        .recharts-default-tooltip { 
+            border-radius: 12px !important; 
+            border: none !important; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important; 
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-export default App;
+    <script type="text/babel">
+        const { 
+            ComposedChart, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, 
+            Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie, Legend 
+        } = window.Recharts;
+        const { useState, useMemo } = React;
+
+        // Tákn (Icons) - Handteiknuð í SVG til að forðast hleðsluvillur
+        const IconInfo = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12" y1="8" y2="8"/></svg>;
+        const IconCalc = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-300"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>;
+
+        const App = () => {
+            const [exitMultiple, setExitMultiple] = useState(6.5);
+            
+            // Fastar úr PDF skjölum
+            const equityInvestment = 104.4; // Skv. Yfirlit yfir kaupin.pdf
+            
+            const financialData = [
+                { year: 2026, rev: 379.73, ebitda: 104.29, debt: 390.00, cash: 37.75, noplat: 73.16 },
+                { year: 2027, rev: 417.70, ebitda: 107.51, debt: 390.00, cash: 86.29, noplat: 83.73 },
+                { year: 2028, rev: 459.47, ebitda: 118.26, debt: 390.00, cash: 5.65,  noplat: 93.39 },
+                { year: 2029, rev: 505.42, ebitda: 130.09, debt: 243.33, cash: 44.37, noplat: 100.09 },
+                { year: 2030, rev: 541.28, ebitda: 139.41, debt: 196.67, cash: 17.12, noplat: 105.10 },
+                { year: 2031, rev: 568.34, ebitda: 146.38, debt: 80.00,  cash: 102.74, noplat: 110.35 },
+                { year: 2032, rev: 596.76, ebitda: 153.70, debt: 40.00,  cash: 195.56, noplat: 115.87 },
+            ];
+
+            const dealOverview = [
+                { name: 'Banki', value: 290.0, color: '#1e3a8a', p: '59%' },
+                { name: 'Seljandi', value: 100.0, color: '#1d4ed8', p: '20%' },
+                { name: 'Eigið fé', value: 104.4, color: '#3b82f6', p: '21%' }
+            ];
+
+            // CAGR Reiknaður
+            const revCAGR = (Math.pow(596.76 / 379.73, 1/6) - 1) * 100;
+            const ebitdaCAGR = (Math.pow(153.70 / 104.29, 1/6) - 1) * 100;
+
+            // Niðurstöður (IRR/MoM)
+            const getMetrics = (idx) => {
+                const d = financialData[idx];
+                const equityVal = (d.ebitda * exitMultiple) - (d.debt - d.cash);
+                const mom = equityVal / equityInvestment;
+                const years = d.year - 2025;
+                const irr = (Math.pow(mom, 1/years) - 1) * 100;
+                return { irr, mom, equityVal };
+            };
+
+            const metrics30 = getMetrics(4);
+            const metrics32 = getMetrics(6);
+
+            // Þekjuhlutföll
+            const ratios = financialData.map((d, i) => {
+                const prevDebt = i > 0 ? financialData[i-1].debt : 390;
+                const amortization = Math.max(0, prevDebt - d.debt);
+                const interest = d.debt * 0.08;
+                return {
+                    year: d.year,
+                    lev: (d.debt - d.cash) / d.ebitda,
+                    fccr: d.noplat / (interest + amortization)
+                };
+            });
+
+            const sensitivity = [5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0].map(m => {
+                const d30 = financialData[4];
+                const d32 = financialData[6];
+                const irr30 = (Math.pow(((d30.ebitda * m) - (d30.debt - d30.cash)) / equityInvestment, 1/5) - 1) * 100;
+                const irr32 = (Math.pow(((d32.ebitda * m) - (d32.debt - d32.cash)) / equityInvestment, 1/7) - 1) * 100;
+                return { m: `${m.toFixed(1)}x`, i30: irr30, i32: irr32 };
+            });
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-12">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-8 gap-6">
+                        <div>
+                            <h1 className="text-4xl font-black text-blue-950 tracking-tight uppercase">Project KEF</h1>
+                            <p className="text-slate-500 font-medium mt-1">Áætluð ávöxtun og virðisaukning: 2026 – 2032</p>
+                        </div>
+                        <div className="bg-white p-5 rounded-3xl shadow-sm border border-blue-100 flex items-center gap-6 relative z-50 min-w-[300px]">
+                            <div className="flex-grow">
+                                <label className="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-1">Söluforsenda (Exit)</label>
+                                <input 
+                                    type="range" min="4" max="10" step="0.1" 
+                                    value={exitMultiple} 
+                                    onChange={(e) => setExitMultiple(parseFloat(e.target.value))} 
+                                    className="custom-slider"
+                                />
+                            </div>
+                            <span className="text-3xl font-black text-blue-900 w-20 text-right">{exitMultiple.toFixed(1)}x</span>
+                        </div>
+                    </div>
+
+                    {/* Highlights */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="bg-white rounded-3xl shadow-sm border border-blue-200 overflow-hidden">
+                            <div className="bg-blue-950 p-4 font-bold text-white text-xs uppercase tracking-widest flex items-center gap-2">
+                                <IconInfo /> Fjármögnun kaupa
+                            </div>
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 items-center gap-6">
+                                <div className="h-[160px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie data={dealOverview} dataKey="value" innerRadius={45} outerRadius={65} paddingAngle={6}>
+                                                {dealOverview.map((entry, index) => <Cell key={index} fill={entry.color} stroke="none" />)}
+                                            </Pie>
+                                            <Tooltip formatter={(v) => `${v.toLocaleString()} M`} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                    {dealOverview.map((f, i) => (
+                                        <div key={i} className="flex justify-between items-center"><span className="text-slate-600 font-medium">{f.name}</span><span className="font-bold text-slate-900">{f.p}</span></div>
+                                    ))}
+                                    <div className="pt-2 border-t font-black text-blue-900 flex justify-between"><span>SAMTALS</span><span>494.4 M</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-blue-950 p-8 rounded-3xl shadow-xl flex flex-col justify-center items-center text-center">
+                            <IconCalc />
+                            <p className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mt-4">Entry Margfaldari</p>
+                            <p className="text-6xl font-black text-white my-2">4.60x</p>
+                            <p className="text-xs text-blue-200/60 font-medium uppercase">Miðað við EBITDA 2026</p>
+                        </div>
+                    </div>
+
+                    {/* Main Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Sidebar */}
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-blue-100">
+                                <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-6">Næmnigreining (IRR)</h3>
+                                <div className="h-[200px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={sensitivity}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                            <XAxis dataKey="m" tick={{fontSize: 10}} />
+                                            <YAxis unit="%" tick={{fontSize: 10}} />
+                                            <Tooltip formatter={(v) => `${v.toFixed(1)}%`} />
+                                            <Line type="monotone" dataKey="i30" stroke="#1e3a8a" strokeWidth={3} dot={{r:4}} name="2030" />
+                                            <Line type="monotone" dataKey="i32" stroke="#3B82F6" strokeWidth={3} dot={{r:4}} name="2032" />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                            <div className="bg-blue-900 rounded-3xl p-6 text-white shadow-lg border-b-4 border-blue-700">
+                                <div className="flex justify-between mb-2 text-[10px] font-black text-blue-300 uppercase tracking-widest">Árangur 2030</div>
+                                <div className="flex justify-between items-end">
+                                    <div><p className="text-4xl font-black">{metrics30.irr.toFixed(1)}%</p><p className="text-blue-200 text-[10px] font-bold uppercase">IRR</p></div>
+                                    <div className="text-right"><p className="text-xl font-bold">{metrics30.mom.toFixed(2)}x</p><p className="text-blue-200 text-[10px] font-bold uppercase">MoM</p></div>
+                                </div>
+                            </div>
+                            <div className="bg-blue-900 rounded-3xl p-6 text-white shadow-lg border-b-4 border-blue-700">
+                                <div className="flex justify-between mb-2 text-[10px] font-black text-blue-300 uppercase tracking-widest">Árangur 2032</div>
+                                <div className="flex justify-between items-end">
+                                    <div><p className="text-4xl font-black">{metrics32.irr.toFixed(1)}%</p><p className="text-blue-200 text-[10px] font-bold uppercase">IRR</p></div>
+                                    <div className="text-right"><p className="text-xl font-bold">{metrics32.mom.toFixed(2)}x</p><p className="text-blue-200 text-[10px] font-bold uppercase">MoM</p></div>
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-3xl shadow-sm border border-blue-200 overflow-hidden p-6 space-y-3">
+                                <p className="text-[10px] font-bold text-blue-600 uppercase border-b pb-1">Efnahagur 2024 (M)</p>
+                                <div className="flex justify-between text-sm text-slate-600"><span>Eignir Samtals</span><span className="font-bold text-slate-900">203.7</span></div>
+                                <div className="flex justify-between text-sm text-slate-600"><span>Eigið fé</span><span className="font-bold text-blue-900">153.9</span></div>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="lg:col-span-8 space-y-8">
+                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-blue-100">
+                                <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-6">Þekjuhlutföll (Leverage & FCCR)</h3>
+                                <div className="h-[260px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={ratios}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                            <XAxis dataKey="year" tick={{fontSize: 11}} />
+                                            <YAxis tick={{fontSize: 11}} />
+                                            <Tooltip />
+                                            <Legend verticalAlign="top" iconType="circle" wrapperStyle={{fontSize:10, fontWeight:'bold', paddingBottom:20}} />
+                                            <Line type="stepAfter" dataKey="lev" name="Net Debt / EBITDA" stroke="#1e3a8a" strokeWidth={4} />
+                                            <Line type="monotone" dataKey="fccr" name="Fixed Charge Cover" stroke="#60a5fa" strokeWidth={4} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-blue-100">
+                                <div className="flex flex-col md:flex-row justify-between mb-8 gap-4">
+                                    <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest">Tekjur og EBITDA Vöxtur</h3>
+                                    <div className="flex gap-4">
+                                        <div className="bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase">Rev CAGR</p>
+                                            <p className="text-lg font-black text-blue-600">{revCAGR.toFixed(1)}%</p>
+                                        </div>
+                                        <div className="bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase">EBITDA CAGR</p>
+                                            <p className="text-lg font-black text-blue-900">{ebitdaCAGR.toFixed(1)}%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="h-[260px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <ComposedChart data={financialData}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                            <XAxis dataKey="year" tick={{fontSize: 11}} />
+                                            <YAxis yAxisId="left" tick={{fontSize: 11}} />
+                                            <YAxis yAxisId="right" orientation="right" tick={{fontSize: 11, fill: '#60a5fa'}} />
+                                            <Tooltip />
+                                            <Legend verticalAlign="top" wrapperStyle={{fontSize:10, fontWeight:'bold', paddingBottom:20}} />
+                                            <Bar yAxisId="left" dataKey="ebitda" name="EBITDA" fill="#1e3a8a" radius={[6,6,0,0]} />
+                                            <Line yAxisId="right" type="monotone" dataKey="rev" name="Tekjur" stroke="#60a5fa" strokeWidth={4} dot={{r:5, fill:'#60a5fa'}} />
+                                        </ComposedChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
